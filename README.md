@@ -36,3 +36,30 @@ Example
 ```
 python3 mongo_client.py -c user_info housekeeping
 ```
+
+
+# Data Quality 
+
+## content_info
+```
+python3 mongo_client.py -c content_info to-csv --csv-file-path ./output/content_info/content_info.csv
+
+cd ./output/content_info
+piperider run --skip-recommend 
+# check if test failed
+
+piperider run --skip-recommend  |grep "\[FAILED\]"
+if [ $? -ne 0 ]; then echo "success"; else echo "failed"; fi  # piperider version 0.9.0
+```
+
+## user_info
+```
+python3 mongo_client.py -c user_info to-csv --csv-file-path ./output/user_info/user_info.csv
+
+cd ./output/user_info
+piperider run --skip-recommend 
+# check if test failed
+
+piperider run --skip-recommend  |grep "\[FAILED\]"
+if [ $? -ne 0 ]; then echo "success"; else echo "failed"; fi  # piperider version 0.9.0
+```
