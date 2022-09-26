@@ -8,16 +8,6 @@ pipeline {
         MONGO_DB = "ithome_ironman"
     } 
     stages {
-        stage("Setup enviorment"){
-            steps{
-                // sh '''#!/bin/bash
-                // virtualenv venv
-                // source venv/bin/activate
-                // pip3 install -r requirements.txt
-                // '''
-                echo "test"
-            }
-        }
         stage('Data pipeline(stage 1)') {
             matrix {
                 axes {
@@ -54,14 +44,17 @@ pipeline {
                             }
                         }
                     }
+                    stage("Check data quality"){
+                        steps{
+                            sh """
+                            docker run -v ${WORKSPACE}output/${DATA}/:/usr/src/github/ piperider run
+                            """
+                            sh "python3 get_piperider_result.py ----data-source-name ${DATA}"
+                        }
+                    }                     
                 }
             }
         }
-        stage("Check data quality"){
-            steps{
-                echo "data quality"
-            }
-        } 
         stage('Data pipeline(stage 2)') {
             matrix {
                 axes {
