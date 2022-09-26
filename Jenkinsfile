@@ -43,7 +43,7 @@ pipeline {
                             """
                             sh '''
                             sudo rm -rf ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
-                            sudo ln -s ${WORKSPACE}/output/${DATA}/.piperider/outputs/$(ls ${WORKSPACE}/output/${DATA}/.piperider/outputs | grep ithome|tail -n1) ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
+                            sudo mv ${WORKSPACE}/output/${DATA}/.piperider/outputs/$(ls ${WORKSPACE}/output/${DATA}/.piperider/outputs | grep ithome|tail -n1) ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
                             '''
                             sh "python3 get_piperider_result.py --data-source-name ${DATA} "
                         }
@@ -106,8 +106,8 @@ pipeline {
         }                 
     }
     post{
-        success{
-            cleanWs()
+        always{
+            archiveArtifacts artifacts: 'output/**', followSymlinks: false
         }
     }
 }
