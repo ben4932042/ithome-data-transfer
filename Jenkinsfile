@@ -4,7 +4,7 @@ pipeline {
         // can run gcloud command
     }
     environment {
-        MONGO_HOST = "mongo://localhost:27017"
+        MONGO_HOST = "mongodb://localhost:27017"
         MONGO_DB = "ithome_ironman"
     } 
     stages {
