@@ -43,11 +43,18 @@ pipeline {
                             """
                             sh '''
                             sudo rm -rf ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
-                            sudo mv ${WORKSPACE}/output/${DATA}/.piperider/outputs/$(ls ${WORKSPACE}/output/${DATA}/.piperider/outputs | grep ithome|tail -n1) ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
+                            sudo ln -s ${WORKSPACE}/output/${DATA}/.piperider/outputs/$(ls ${WORKSPACE}/output/${DATA}/.piperider/outputs | grep ithome|tail -n1) ${WORKSPACE}/output/${DATA}/.piperider/outputs/latest
                             '''
                             sh "python3 get_piperider_result.py --data-source-name ${DATA} "
                         }
-                    }                     
+                    }
+                    stage("Push to GCS"){
+                        steps{
+                            sh """
+                            gcloud alpha storage cp output/${DATA}/${DATA}.csv gs://crawler_result/ithome/ironman2022
+                            """
+                        }
+                    }                                     
                 }
             }
         }
