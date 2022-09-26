@@ -22,21 +22,38 @@ pipeline {
             matrix {
                 axes {
                     axis {
-                        name 'MONGO_COLLECTION'
-                        values 'user', 'devops_groups'
+                        name 'DATA'
+                        values 'user_info', 'content_info'
                     }
                 }
                 stages {
                     stage("Pull mongo data"){
                         steps{
-                            echo "test1 ${MONGO_COLLECTION}"
+                            sh """
+                                python3 mongo_client.py -c ${DATA} \
+                                    to-csv --csv-file-path output/${DATA}/${DATA}.csv
+                            """
                         }
                     }
-                    stage("Verify mongo data"){
+                    stage("Check mongo data"){
                         steps{
-                            echo "check number ${MONGO_COLLECTION}"
+                            script{
+                                MONGO_DATA_COUNT = sh (
+                                    script: "python3 mongo_client.py -c ${DATA} count-data --contain-header",
+                                    returnStdout: true
+                                ).trim().toInteger()
+                                CSV_DATA_COUNT = sh (
+                                    script: "cat output/${DATA}/${DATA}.csv|wc -l",
+                                    returnStdout: true
+                                ).trim().toInteger()
+                                if (MONGO_DATA_COUNT != CSV_DATA_COUNT){
+                                    echo "Mongo data:  ${MONGO_DATA_COUNT}"
+                                    echo "Csv data:  ${CSV_DATA_COUNT}"
+                                    sh "false"
+                                }
+                            }
                         }
-                    } 
+                    }
                 }
             }
         }
@@ -105,6 +122,3 @@ pipeline {
         }
     }
 }
-
-
-
