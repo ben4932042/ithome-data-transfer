@@ -2,7 +2,6 @@
 """mongo client cli"""
 import os
 import re
-from typing import Any
 import click
 import pymongo
 import pandas as pd
@@ -34,12 +33,12 @@ class IthomeMongoClient:
         _clean_df(self.get_mongo_data(skip_column=skip_column)).to_csv(file_path, index=None)
 
     def check_data_count(self, contain_header: bool = True) -> int:
-        """get data count in mongo"""
+        """get mongo data count"""
         data_count = 1 if contain_header else 0
         return self.collection.count_documents({}) + data_count
 
     def truncate_mongo_data(self) -> None:
-        """drop mongo collection data"""
+        """drop mongo collection"""
         self.collection.drop()
 
 @click.group()
