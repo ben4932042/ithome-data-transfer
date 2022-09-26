@@ -57,60 +57,7 @@ pipeline {
                     }                                     
                 }
             }
-        }
-        stage('Data pipeline(stage 2)') {
-            matrix {
-                axes {
-                    axis {
-                        name 'MONGO_COLLECTION'
-                        values 'user', 'devops_groups'
-                    }
-                    axis {
-                        name 'GCS_FILE_NAME'
-                        values 'user_info', 'ironman_content'
-                    }                    
-                }
-                excludes {
-                    exclude {
-                        axis {
-                            name 'MONGO_COLLECTION'
-                            values 'user'
-                        }
-                        axis {
-                            name 'GCS_FILE_NAME'
-                            values 'ironman_content'
-                        }
-                    }
-                    exclude {
-                        axis {
-                            name 'MONGO_COLLECTION'
-                            values 'devops_groups'
-                        }
-                        axis {
-                            name 'GCS_FILE_NAME'
-                            values 'user_info'
-                        }
-                    }                    
-                }
-                stages {
-                    stage("Push to GCS"){
-                        steps{
-                            echo "push to gcs ${MONGO_COLLECTION} ${GCS_FILE_NAME}"
-                        }
-                    }
-                    stage("Check upload to GCS data"){
-                        steps{
-                            echo "cat to gcs|wc -l ${MONGO_COLLECTION} ${GCS_FILE_NAME}"
-                        }
-                    }
-                }
-            }
-        }
-        stage("Move to prodcution folder on GCS"){
-            steps{
-                echo "mv to gcs"
-            }
-        }                 
+        }              
     }
     post{
         always{
