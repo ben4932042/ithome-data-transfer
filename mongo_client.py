@@ -1,9 +1,19 @@
 # pylint: disable=no-value-for-parameter
 """mongo client cli"""
 import os
+import re
 import click
 import pymongo
 import pandas as pd
+
+
+def _clean_data(text: str) -> str:
+    return re.sub('\t|\r|\n|\u3000|,|\xa0', '。', text)
+
+def _clean_df(data: pd.DataFrame) -> pd.DataFrame:
+    for _col in data.select_dtypes(include=['object']).columns:
+        data[_col] = data[_col].map(_clean_data)
+    return data
 
 class IthomeMongoClient:
     """ithome mongo interface"""
@@ -17,17 +27,18 @@ class IthomeMongoClient:
         mongo_df = pd.DataFrame(list(self.collection.find()))
         return mongo_df[[_col for _col in mongo_df.columns if not _col in skip_column]]
 
-    def dump_to_csv(self, skip_column: set, csv_file_path: str) -> None:
-        """get mongo data and output to csv"""
-        self.get_mongo_data(skip_column=skip_column).to_csv(csv_file_path, index=None)
+    def dump_to_file(self, skip_column: set, file_path: str) -> None:
+        """get mongo data and output to csv
+        Note: for demo usage, data will replace special characters to space"""
+        _clean_df(self.get_mongo_data(skip_column=skip_column)).to_csv(file_path, index=None)
 
     def check_data_count(self, contain_header: bool = True) -> int:
-        """get data count in mongo"""
+        """get mongo data count"""
         data_count = 1 if contain_header else 0
         return self.collection.count_documents({}) + data_count
 
     def truncate_mongo_data(self) -> None:
-        """drop mongo collection data"""
+        """drop mongo collection"""
         self.collection.drop()
 
 @click.group()
@@ -48,10 +59,10 @@ def count_data(ctx, contain_header: bool = True):
 @cli.command()
 @click.pass_context
 @click.option('--skip-column', '-s',  multiple=True)
-@click.option('-csv-file-path', '-csv')
+@click.option('--csv-file-path', '-file')
 def to_csv(ctx, skip_column: set, csv_file_path: str):
     """get crawl data"""
-    ctx.obj['mongo_client'].dump_to_csv(skip_column=skip_column, csv_file_path=csv_file_path)
+    ctx.obj['mongo_client'].dump_to_file(skip_column=skip_column, file_path=csv_file_path)
 
 @cli.command()
 @click.pass_context
