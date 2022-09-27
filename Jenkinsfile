@@ -93,7 +93,13 @@ pipeline {
                     }
                 }
             }
-        }             
+        }
+        stage("House keeping"){
+            steps{
+                sh "python3 mongo_client.py -c user_info housekeeping"
+                sh "python3 mongo_client.py -c content_info housekeeping"
+            }
+        }     
     }
     post{
         always{
