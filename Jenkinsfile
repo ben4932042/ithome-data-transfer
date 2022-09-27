@@ -1,7 +1,13 @@
+properties([parameters([
+  [$class: 'DateParameterDefinition',
+   name: 'EXECUTE_DATE',
+   dateFormat: 'yyyy-MM-dd',
+   defaultValue: 'LocalDate.now().plusHours(8)'] // since server use UTC
+])])
+
 pipeline {
     agent{
         label "gcp-agent-1"
-        // can run gcloud command
     }
     environment {
         MONGO_HOST = "mongodb://localhost:27017"
@@ -54,10 +60,46 @@ pipeline {
                             gcloud alpha storage cp output/${DATA}/${DATA}.csv gs://crawler_result/ithome/ironman2022
                             """
                         }
-                    }                                     
+                    }
+                    stage("Append to history table"){
+                        steps{
+                            sh """
+                                cat sql/update_${DATA}_hist.sql | bq query \
+                                    --nouse_legacy_sql \
+                                    --parameter execute_date:DATE:"${params.EXECUTE_DATE}"
+                            """
+                        }
+                    }                                                      
                 }
             }
-        }              
+        } 
+        stage("Data pipeline(stage 2)") {
+            matrix {
+                axes {
+                    axis {
+                        name 'OUTPUT_TABLE'
+                        values 'user_info_latest', 'content_info_latest', 'content_info_view_change'
+                    }
+                }
+                stages {
+                    stage("Update GDS table"){
+                        steps{
+                            sh """
+                                cat sql/overwrite_${OUTPUT_TABLE}.sql | bq query \
+                                    --nouse_legacy_sql \
+                                    --parameter execute_date:DATE:"${params.EXECUTE_DATE}"
+                            """
+                        }
+                    }
+                }
+            }
+        }
+        stage("House keeping"){
+            steps{
+                sh "python3 mongo_client.py -c user_info housekeeping"
+                sh "python3 mongo_client.py -c content_info housekeeping"
+            }
+        }     
     }
     post{
         always{
