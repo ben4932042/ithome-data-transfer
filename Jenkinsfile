@@ -73,7 +73,7 @@ pipeline {
                 }
             }
         } 
-        stage("Data pipeline(stage 1)") {
+        stage("Data pipeline(stage 2)") {
             matrix {
                 axes {
                     axis {
