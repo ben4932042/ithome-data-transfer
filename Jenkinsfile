@@ -72,7 +72,26 @@ pipeline {
                     }                                                      
                 }
             }
-        }              
+        } 
+        stage("Data pipeline(stage 1)") {
+            matrix {
+                axes {
+                    axis {
+                        name 'OUTPUT_TABLE'
+                        values 'user_info_latest', 'content_info_latest', 'content_info_view_change'
+                    }
+                }
+                stage("Update GDS table"){
+                    steps{
+                        sh """
+                            cat sql/overwrite_${OUTPUT_TABLE}.sql | bq query \
+                                --nouse_legacy_sql \
+                                --parameter execute_date:DATE:"${params.EXECUTE_DATE}"
+                        """
+                    }
+                }
+            }
+        }             
     }
     post{
         always{
