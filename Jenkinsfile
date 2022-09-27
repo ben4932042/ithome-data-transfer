@@ -1,7 +1,13 @@
+properties([parameters([
+  [$class: 'DateParameterDefinition',
+   name: 'EXECUTE_DATE',
+   dateFormat: 'yyyy-MM-dd',
+   defaultValue: 'LocalDate.now().plusHours(8)'] // since server use UTC
+])])
+
 pipeline {
     agent{
         label "gcp-agent-1"
-        // can run gcloud command
     }
     environment {
         MONGO_HOST = "mongodb://localhost:27017"
@@ -54,7 +60,16 @@ pipeline {
                             gcloud alpha storage cp output/${DATA}/${DATA}.csv gs://crawler_result/ithome/ironman2022
                             """
                         }
-                    }                                     
+                    }
+                    stage("Append to history table"){
+                        steps{
+                            sh """
+                                cat sql/update_${DATA}_hist.sql | bq query \
+                                    --nouse_legacy_sql \
+                                    --parameter execute_date:DATE:"${params.EXECUTE_DATE}"
+                            """
+                        }
+                    }                                                      
                 }
             }
         }              
