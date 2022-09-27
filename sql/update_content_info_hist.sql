@@ -1,3 +1,6 @@
+DELETE FROM `ithome-jenkins-2022.ithome.content_info_hist_test`
+WHERE DATE(crawl_datetime) = @execute_date;
+
 INSERT INTO `ithome-jenkins-2022.ithome.content_info_hist`
 SELECT
   `_id`,
